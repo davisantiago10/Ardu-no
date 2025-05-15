@@ -1,3 +1,8 @@
+//Esse código conecta o sensor ultrassônico com o sensor infravermelho
+//Podendo analisar a distância e também se a cor é preta ou branca
+//Falta integrar os motores
+
+
 #include <avr/sleep.h>
 #define echo 8
 #define trig 9
