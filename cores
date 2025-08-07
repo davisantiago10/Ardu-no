@@ -14,82 +14,82 @@
 void setup() {
   Serial.begin(9600);
 
-  // Configura os pinos como saída ou entrada
-  //Esquerda
-  pinMode(S0, OUTPUT);
-  pinMode(S1, OUTPUT);
-  pinMode(S2, OUTPUT);
-  pinMode(S3, OUTPUT);
+  // Esquerdo
+  pinMode(S0, OUTPUT);  pinMode(S1, OUTPUT);
+  pinMode(S2, OUTPUT);  pinMode(S3, OUTPUT);
   pinMode(OUT, INPUT);
 
-  //Direita
-  pinMode(S00, OUTPUT);
-  pinMode(S11, OUTPUT);
-  pinMode(S22, OUTPUT);
-  pinMode(S33, OUTPUT);
-
+  // Direito
+  pinMode(S00, OUTPUT); pinMode(S11, OUTPUT);
+  pinMode(S22, OUTPUT); pinMode(S33, OUTPUT);
   pinMode(OUTT, INPUT);
-  // Ativa a saída de frequência em 100%
-  digitalWrite(S0, HIGH);
-  digitalWrite(S1, HIGH);
-  digitalWrite(S00, HIGH);
-  digitalWrite(S11, HIGH);
 
-  // Liga o LED branco do sensor (se existir)
+  digitalWrite(S0, HIGH);  digitalWrite(S1, HIGH);
+  digitalWrite(S00, HIGH); digitalWrite(S11, HIGH);
 
   Serial.println("Sensores de cor iniciados...");
 }
 
 void loop() {
-  //Leitura do sensor esquerdo
-  int redE = readColor(S2, S3, OUT,LOW, LOW);      // Filtro vermelho
-  int greenE = readColor(S2, S3, OUT, HIGH, HIGH);  // Filtro verde
-  int blueE = readColor(S2, S3, OUT, LOW, HIGH);    // Filtro azul
+  // Sensor esquerdo
+  int redE = readColor(S2, S3, OUT, LOW, LOW);
+  int greenE = readColor(S2, S3, OUT, HIGH, HIGH);
+  int blueE = readColor(S2, S3, OUT, LOW, HIGH);
 
-  //Leitura sensor direito
+  // Sensor direito
   int redD = readColor(S22, S33, OUTT, LOW, LOW);
   int greenD = readColor(S22, S33, OUTT, HIGH, HIGH);
   int blueD = readColor(S22, S33, OUTT, LOW, HIGH);
 
-  //Usa a função de identificar a cor
   String corE = identificarCor(redE, greenE, blueE);
   String corD = identificarCor(redD, greenD, blueD);
-  Serial.println(">> Cor detectada: ");
 
-  // Mostra valores   
-  Serial.print("[ESQUERDA]");
-  Serial.print("R: "); Serial.print(redE);
+  Serial.println(">> Cor detectada:");
+
+  Serial.print("[ESQUERDA] R: "); Serial.print(redE);
   Serial.print(" | G: "); Serial.print(greenE);
   Serial.print(" | B: "); Serial.println(blueE);
   Serial.println(corE);
   Serial.println("-=-=-=--=");
 
-  Serial.print("[DIREITA]");
-  Serial.print("R: "); Serial.print(redD);
+  Serial.print("[DIREITA] R: "); Serial.print(redD);
   Serial.print(" | G: "); Serial.print(greenD);
   Serial.print(" | B: "); Serial.println(blueD);
   Serial.println(corD);
   Serial.println("-=-=-=--=");
 
-  delay(2000);
+  delay(100); // Pode remover se quiser leitura contínua
 }
 
-// === Lê a intensidade da cor específica ===
 int readColor(int s2, int s3, int outPin, bool s2State, bool s3State) {
   digitalWrite(s2, s2State);
   digitalWrite(s3, s3State);
-  delay(50);  // Tempo para o sensor estabilizar
-  int tempo = pulseIn(outPin, LOW);
+  delay(10); // Reduzido
+  int tempo = pulseIn(outPin, LOW, 25000); // 25 ms de timeout
   return tempo;
 }
 
-// === Interpreta as cores com base na intensidade ===
 String identificarCor(int red, int green, int blue) {
-  if (red < blue && blue <= green) {
+  if (red < green && red < blue) {
     return "Vermelho";
-  } else if (blue <= green && green < red) {
-    return "Verde";
-  } else {
+  } 
+
+  else if ( red > 80 && green > 80 && blue > 50 ) {
+      return "Preto";
+  } 
+
+  else if (red > 30 && green > 20 && blue < 32 ){
+    if (blue <= green && green < red ) {
+      return "Verde";
+    }
+  } 
+
+  else if ( red < 20 && green < 15 && blue < 13 ) {
+    return "Branco";
+  } 
+
+  else {
     return "Indefinido";
   }
+
 }
