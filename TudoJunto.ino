@@ -1,7 +1,7 @@
 #include <avr/sleep.h>
 
 // Pinos do sensor ultrassônico
-#define echo 8
+#define echo 10
 #define trig 9
 
 // Pinos dos LEDs
