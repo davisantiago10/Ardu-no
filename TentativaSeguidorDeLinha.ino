@@ -90,7 +90,6 @@ void loop() {
   Serial.println(corD);
   Serial.println("-=-=-=--=");
 
-  delay(500); // Pode remover para leitura contínua
 
   // === LÓGICA DO SEGUIDOR DE LINHA ===
 
@@ -116,7 +115,7 @@ int readColor(int s2, int s3, int outPin, bool s2State, bool s3State) {
 
   digitalWrite(s2, s2State);
   digitalWrite(s3, s3State);
-  delay(10); // Pequena pausa para estabilidade
+  delay(100); // Pequena pausa para estabilidade
   int tempo = pulseIn(outPin, LOW, 25000); // timeout de 25ms
   return tempo;
 
@@ -125,22 +124,19 @@ int readColor(int s2, int s3, int outPin, bool s2State, bool s3State) {
 // === FUNÇÃO PARA IDENTIFICAR A COR ===
 String identificarCor(int red, int green, int blue) {
 
-  if (red < green && red < blue) {
+  if (red <= 17 && green >= 19 && blue >= 15) {
     return "Vermelho";
   } 
-
-  else if (red > 18 && green > 18 && blue < 16 ) {
+  else if (red >= 18 && green >= 16 && blue < 20 ) {
     return "Preto";
   } 
-
   else if (red > 23 && green < 22  && blue < 20) {
     if (blue <= green && green < red) {
       return "Verde";
     }
-
   } 
 
-  else if (red < 12 && green < 12 && blue < 10) {
+  else if (red <= 13 && green <= 13 && blue < 10) {
     return "Branco";
   } 
 
@@ -180,9 +176,9 @@ void motorFrenteDevagar() {
     digitalWrite(IN2, HIGH);
     digitalWrite(IN3, HIGH);
     digitalWrite(IN4, LOW);
-    analogWrite(ENA, 90);
+    analogWrite(ENA, 80);
     analogWrite(ENB, 250);
-    delay(20);
+    delay(10);
     Serial.println(">> Motores girando para a ESQUERDA");
   }
 
@@ -193,8 +189,8 @@ void motorFrenteDevagar() {
     digitalWrite(IN3, LOW);
     digitalWrite(IN4, HIGH);
     analogWrite(ENA, 250);
-    analogWrite(ENB, 90);
-    delay(20);
+    analogWrite(ENB, 80);
+    delay(10);
     Serial.println(">> Motores girando para a DIREITA");
   }
 
