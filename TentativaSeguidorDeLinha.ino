@@ -96,26 +96,18 @@ void loop() {
   if (corE == "Preto" && corD == "Preto") {
     motorFrente();
   } 
-  else if (corE == "Preto" || corE == "Indefinido" && corD == "Branco") {
+  else if (corE == "Preto" && corD == "Branco") {
     motorEsquerda();
   } 
-  else if (corE == "Branco" && corD == "Preto" || corD == "Indefinido") {
+  else if (corE == "Branco" && corD == "Preto") {
     motorDireita();
   } 
   else if (corE == "Branco" && corD == "Branco") {
     motorFrente();
   } 
-  else if (corE != "Verde " && corD == "Verde"){
-    motorDireita();
-    delay(500);
-  }
-  else if (corE == "Verde" && corD != "Verde"){
-    motorEsquerda();
-    delay(500);
-  }
   else if (corE == "Vermelho" && corD == "Vermelho"){
     pararMotores();
-    delay(10000);
+    delay(7000);
   }
   else{
     motorFrenteDevagar();
@@ -128,7 +120,7 @@ int readColor(int s2, int s3, int outPin, bool s2State, bool s3State) {
   digitalWrite(s2, s2State);
   digitalWrite(s3, s3State);
   delay(50); // Pequena pausa para estabilidade
-  int tempo = pulseIn(outPin, LOW, 2500); // timeout de 25ms
+  int tempo = pulseIn(outPin, LOW, 50000); // timeout de 50ms
   return tempo;
 
 }
@@ -190,7 +182,7 @@ void motorFrenteDevagar() {
     digitalWrite(IN2, HIGH);
     digitalWrite(IN3, HIGH);
     digitalWrite(IN4, LOW);
-    analogWrite(ENA, 150);
+    analogWrite(ENA, 160);
     analogWrite(ENB, 250);
     Serial.println(">> Motores girando para a ESQUERDA");
   }
@@ -202,7 +194,7 @@ void motorFrenteDevagar() {
     digitalWrite(IN3, LOW);
     digitalWrite(IN4, HIGH);
     analogWrite(ENA, 250);
-    analogWrite(ENB, 150);
+    analogWrite(ENB, 160);
     Serial.println(">> Motores girando para a DIREITA");
   }
 
@@ -212,20 +204,4 @@ void motorFrenteDevagar() {
     analogWrite(ENB, 0);
     Serial.println(">> Motores PARADOS");
   }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
