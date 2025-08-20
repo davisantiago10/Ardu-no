@@ -90,17 +90,17 @@ void motorEsquerda() {
 }
 
 void motorDireitaSuave() {
-  digitalWrite(IN1, LOW);
-  digitalWrite(IN2, HIGH);
-  digitalWrite(IN3, HIGH);
-  digitalWrite(IN4, LOW);
+  digitalWrite(IN1, HIGH);
+  digitalWrite(IN2, LOW);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, HIGH);
   analogWrite(ENA, 250);
-  analogWrite(ENB, 170);
+  analogWrite(ENB, 140);
   Serial.println(">> Virando para a DIREITA");
 }
 
 void desviaObjetos(){
-  if (distancia > 20){
+  if (distancia > 15){
     motorFrente();
   }
   else{
@@ -109,10 +109,15 @@ void desviaObjetos(){
     motorTras();
     delay(1000);
     motorEsquerda();
-    delay(600);
+    delay(860);
+    motorFrente();
+    delay(2700);
+    motorDireitaSuave();
+    delay(1000);
     motorFrente();
     delay(1000);
     motorDireitaSuave();
-    delay(3000);
+    delay(2200);
+    motorFrente();
   }
 }
