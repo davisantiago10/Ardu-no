@@ -1,16 +1,16 @@
 // === SENSOR DE COR ESQUERDO (TCS3200) ===
-#define S0 52  // Controle de escala de frequência
-#define S1 53
-#define S2 50  // Seleção de filtro de cor
-#define S3 51
-#define OUT 22 // Saída do sensor
+#define S0 23  // Controle de escala de frequência
+#define S1 22
+#define S2 25  // Seleção de filtro de cor
+#define S3 24
+#define OUT 27 // Saída do sensor
 
 // === SENSOR DE COR DIREITO (TCS3200) ===
-#define S00 48
-#define S11 49
-#define S22 46
-#define S33 47
-#define OUTT 23
+#define S00 51
+#define S11 50
+#define S22 53
+#define S33 52
+#define OUTT 49
 
 // === MOTORES COM PONTE H (L298N) ===
 // PWM motor esquerdo
@@ -23,12 +23,22 @@
 #define IN3 5
 #define IN4 6
 
-// Variáveis globais para armazenar cores
+// Sensor ultrassonico: 
+#define echo 41
+#define trig 39
+
+// Variáveis globais para armazenar cores e distancia
 String corE;
 String corD;
+int distancia;
+
 
 void setup() {
   Serial.begin(9600);
+
+  //Pinos do sensor ultrassonico
+  pinMode(trig, OUTPUT);
+  pinMode(echo, INPUT);
 
   // Pinos do sensor esquerdo
   pinMode(S0, OUTPUT);  
@@ -62,8 +72,15 @@ void setup() {
 }
 
 void loop() {
-  leituraExibicao();   // Lê sensores e atualiza corE e corD
-  seguidorDeLinha();   // Executa a lógica do seguidor de linha
+  distancia = detectaDistancia();
+  if (distancia < 15){
+    desviaObjetos();
+  }
+  else{
+    leituraExibicao();   // Lê sensores e atualiza corE e corD
+    seguidorDeLinha();   // Executa a lógica do seguidor de linha
+  }
+  delay(100);
 }
 
 // Função de leitura e exibição dos valores
@@ -129,22 +146,91 @@ String identificarCor(int red, int green, int blue) {
   }
 }
 
+//Função para detectar a distancia 
+int detectaDistancia(){
+    // Envia um pulso de trigger
+  digitalWrite(trig, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trig, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trig, LOW);
+
+  //mede o tempodos inal do eco
+  long duracao = pulseIn(echo, HIGH, 30000);
+  if (duracao == 0) return 999; // Sem leitura, assume longe
+
+  int d = duracao / 58; // converte prwa cm
+
+  Serial.print("Distância: ");
+  Serial.print(d);
+  Serial.println("cm");
+  delay(400);
+  return d;
+}
+
+//Função de desviar do objeto
+void desviaObjetos(){
+    parado();
+    delay(500);
+    motorTras();
+    delay(1000);
+    motorEsquerda();
+    delay(860);
+    motorFrente();
+    delay(2700);
+    motorDireitaSuave();
+    delay(1000);
+    motorFrente();
+    delay(1000);
+    motorDireitaSuave();
+    delay(2200);
+    motorFrente();
+  }
+
 // Função para seguir a linha
 void seguidorDeLinha() {
   if (corE == "Preto" && corD == "Preto") {
     motorFrente();
   } 
+
   else if (corE == "Preto" && corD == "Branco") {
     motorEsquerda();
   } 
+
   else if (corE == "Branco" && corD == "Preto") {
     motorDireita();
   } 
+
   else if (corE == "Branco" && corD == "Branco") {
     motorFrente();
   } 
+
+  else if (corE == "Verde" && corD != "Verde"){
+    motorEsquerda();
+    delay(100);
+    leituraExibicao();
+    if(corE == "Verde"){ //Verifica se realmente é verde ou se estava entre o preto e o branco
+      giraVerdeEsquerda();
+    }
+    else{
+      motorFrente();
+    }
+  }
+
+  else if (corE != "Verde" && corD == "Verde"){
+    motorDireita();
+    delay(100);
+    leituraExibicao();
+    if(corD == "Verde"){
+      giraVerdeDireita();
+    }
+    else{
+      motorFrente();
+    }
+
+  }
   else if (corE == "Vermelho" && corD == "Vermelho") {
-    pararMotores();
+    parado();
     delay(7000);
   }
   else {
@@ -179,7 +265,7 @@ void motorEsquerda() {
   digitalWrite(IN2, HIGH);
   digitalWrite(IN3, HIGH);
   digitalWrite(IN4, LOW);
-  analogWrite(ENA, 160);
+  analogWrite(ENA, 180);
   analogWrite(ENB, 250);
   Serial.println(">> Virando para a ESQUERDA");
 }
@@ -190,12 +276,60 @@ void motorDireita() {
   digitalWrite(IN3, LOW);
   digitalWrite(IN4, HIGH);
   analogWrite(ENA, 250);
-  analogWrite(ENB, 160);
+  analogWrite(ENB, 180);
   Serial.println(">> Virando para a DIREITA");
 }
 
-void pararMotores() {
+void motorDireitaSuave() {
+  digitalWrite(IN1, HIGH);
+  digitalWrite(IN2, LOW);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, HIGH);
+  analogWrite(ENA, 250);
+  analogWrite(ENB, 140);
+  Serial.println(">> Virando para a DIREITA SUAVE");
+}
+
+void giraVerdeEsquerda(){
+  motorFrente();
+  delay(300); //Anda um pouco para frente para passar do verde
+  motorEsquerda(); // gira pra esquerda, onde viu o verde
+  while (corE != "Preto"){
+    motorEsquerda();
+    leituraExibicao();
+  }
+  parado();
+  delay(100);
+}
+
+void giraVerdeDireita(){
+  motorFrente();
+  delay(300);
+  motorDireita();
+  while (corD != "Preto"){
+    motorDireita();
+    leituraExibicao();
+  }
+  parado();
+  delay(100);
+}
+
+void motorTras() {
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, HIGH);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, HIGH);
+  analogWrite(ENA, 150);
+  analogWrite(ENB, 150);
+  Serial.println(">> Motores girando para FRENTE");
+}
+
+void parado(){
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, LOW);
+  digitalWrite(IN3, LOW);
+  digitalWrite(IN4, LOW);
   analogWrite(ENA, 0);
   analogWrite(ENB, 0);
-  Serial.println(">> Motores PARADOS");
+  Serial.println(">> Motores parados");
 }
